@@ -170,19 +170,25 @@ Messages are stored locally in `.agent-chorus/messages/` and never leave your ma
 
 ## Supported Agents
 
-Full multi-agent coverage. No other tool matches this breadth across 4 agents and 9 capabilities.
+Full multi-agent coverage across 5 agents and 9 capabilities.
 
-| Feature              | Codex | Gemini | Claude | Cursor |
-| :------------------- | :---: | :----: | :----: | :----: |
-| **Read Content**     |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Auto-Discovery**   |  Yes  |  Yes   |  Yes   |  Yes   |
-| **CWD Scoping**      |  Yes  |   No   |  Yes   |   No   |
-| **List Sessions**    |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Search**           |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Comparisons**      |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Session Diff**     |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Redaction Audit**  |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Messaging**        |  Yes  |  Yes   |  Yes   |  Yes   |
+| Feature              | Codex | Gemini | Claude | Cursor | Hermes |
+| :------------------- | :---: | :----: | :----: | :----: | :----: |
+| **Read Content**     |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Auto-Discovery**   |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **CWD Scoping**      |  Yes  |   No   |  Yes   |   No   |  Yes   |
+| **List Sessions**    |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Search**           |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Comparisons**      |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Session Diff**     |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Redaction Audit**  |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Messaging**        |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+
+Hermes is a fork addition. It is WSL-hosted and has no vendor-defined session
+store, so this adapter owns the convention: `~/.hermes/sessions/*.jsonl`,
+overridable with `CHORUS_HERMES_DATA_DIR`. On a host where Hermes is not
+installed, session reading returns empty and messaging still works — relaying
+for an agent does not require running it.
 
 Both Node.js and Rust implementations pass identical conformance tests against shared fixtures.
 
@@ -229,7 +235,7 @@ chorus relevance --suggest --cwd .           # Suggest patterns for this project
 | :--- | :---: | :---: | :---: |
 | **Approach** | Read-only evidence layer | Full orchestration framework | Parallel agent spawning |
 | **Install** | `npm i -g agent-chorus` or `cargo install` | pip + ecosystem | git clone |
-| **Agents** | Codex, Claude, Gemini, Cursor | Provider-specific | Usually Claude-only |
+| **Agents** | Codex, Claude, Gemini, Cursor, Hermes | Provider-specific | Usually Claude-only |
 | **Dependencies** | Zero npm prod deps | Heavy Python/TS stack | Moderate |
 | **Privacy** | Local-first, auto-redaction | Cloud-optional | Varies |
 | **Cold-start solution** | Context Pack (5-doc briefing) | None | None |
