@@ -5,7 +5,22 @@ const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
-const { getAdapter } = require('./adapters/registry.cjs');
+const { getAdapter, listAdapters } = require('./adapters/registry.cjs');
+
+// Derived from the adapter registry, never written out by hand. The agent list
+// used to be spelled out at five call sites plus six help strings, so adding an
+// adapter (hermes) left `send`/`messages` working — they already read the
+// registry — while `read`, `list`, `search`, `diff`, `doctor` and `trash-talk`
+// kept rejecting or silently skipping the name. A half-updated list fails one
+// command at a time, which is harder to spot than failing everywhere.
+const SUPPORTED_AGENTS = listAdapters();
+const AGENT_CHOICES = SUPPORTED_AGENTS.join('|');
+
+function assertSupportedAgent(agent) {
+  if (!SUPPORTED_AGENTS.includes(agent)) {
+    throw new Error(`Unsupported agent: ${agent}. Valid: ${SUPPORTED_AGENTS.join(', ')}`);
+  }
+}
 
 const rawArgs = process.argv.slice(2);
 const commandNames = new Set(['read', 'compare', 'report', 'list', 'search', 'setup', 'teardown', 'doctor', 'trash-talk', 'context-pack', 'agent-context', 'relevance', 'diff', 'send', 'messages', 'checkpoint', 'summary', 'timeline']);
@@ -71,7 +86,7 @@ function printHelp(topic = null) {
   if (topic === 'read') {
     lines.push('');
     lines.push('read options:');
-    lines.push('  --agent <codex|gemini|claude|cursor> (default: codex)');
+    lines.push(`  --agent <${AGENT_CHOICES}> (default: codex)`);
     lines.push('  --id <session-substring> (optional; omitted = latest session in scope)');
     lines.push('  --cwd <path>');
     lines.push('  --chats-dir <path> (gemini)');
@@ -85,7 +100,7 @@ function printHelp(topic = null) {
   } else if (topic === 'list') {
     lines.push('');
     lines.push('list options:');
-    lines.push('  --agent <codex|gemini|claude|cursor>');
+    lines.push(`  --agent <${AGENT_CHOICES}>`);
     lines.push('  --cwd <path>');
     lines.push('  --limit <N> (default: 10)');
     lines.push('  --json');
@@ -93,14 +108,14 @@ function printHelp(topic = null) {
     lines.push('');
     lines.push('search options:');
     lines.push('  <query> (positional, required)');
-    lines.push('  --agent <codex|gemini|claude|cursor> (required)');
+    lines.push(`  --agent <${AGENT_CHOICES}> (required)`);
     lines.push('  --cwd <path>');
     lines.push('  --limit <N> (default: 10)');
     lines.push('  --json');
   } else if (topic === 'summary') {
     lines.push('');
     lines.push('summary options:');
-    lines.push('  --agent <codex|gemini|claude|cursor> (required)');
+    lines.push(`  --agent <${AGENT_CHOICES}> (required)`);
     lines.push('  --id <session-substring> (optional; omitted = latest session in scope)');
     lines.push('  --cwd <path>');
     lines.push('  --chats-dir <path> (gemini)');
@@ -211,7 +226,7 @@ function printHelp(topic = null) {
   } else if (topic === 'diff') {
     lines.push('');
     lines.push('diff options:');
-    lines.push('  --agent <codex|gemini|claude|cursor>');
+    lines.push(`  --agent <${AGENT_CHOICES}>`);
     lines.push('  --from <session-id>   First session ID (substring match)');
     lines.push('  --to <session-id>     Second session ID (substring match)');
     lines.push('  --last <n>            Messages per session (default: 1)');
@@ -1377,9 +1392,7 @@ function parseSourceArg(raw) {
   const agent = (firstColon === -1 ? raw : raw.slice(0, firstColon)).trim().toLowerCase();
   const session = firstColon === -1 ? null : raw.slice(firstColon + 1).trim();
 
-  if (!['codex', 'gemini', 'claude', 'cursor'].includes(agent)) {
-    throw new Error(`Unsupported agent: ${agent}`);
-  }
+  assertSupportedAgent(agent);
 
   return {
     agent,
@@ -1771,7 +1784,7 @@ function runSearch(inputArgs) {
 
   const agent = getOptionValue(inputArgs, '--agent', null);
   if (!agent) {
-    throw new Error('search requires --agent=<codex|gemini|claude|cursor>');
+    throw new Error(`search requires --agent=<${AGENT_CHOICES}>`);
   }
 
   const rawCwd = getOptionValue(inputArgs, '--cwd', null);
@@ -2225,7 +2238,7 @@ function runDoctor(inputArgs) {
     );
   }
 
-  for (const agent of ['codex', 'gemini', 'claude', 'cursor']) {
+  for (const agent of SUPPORTED_AGENTS) {
     try {
       const entries = listSessions(agent, cwd, 1);
       if (entries.length > 0) {
@@ -2605,7 +2618,7 @@ function runCheckpoint(inputArgs) {
 
 function runDiff(inputArgs) {
   const agent = getOptionValue(inputArgs, '--agent', null);
-  if (!agent) throw new Error('diff requires --agent=<codex|gemini|claude|cursor>');
+  if (!agent) throw new Error(`diff requires --agent=<${AGENT_CHOICES}>`);
   const fromId = getOptionValue(inputArgs, '--from', null);
   const toId = getOptionValue(inputArgs, '--to', null);
   if (!fromId || !toId) throw new Error('diff requires --from <id> and --to <id>');
@@ -2764,7 +2777,7 @@ function runRelevance(inputArgs) {
 function runTrashTalk(inputArgs) {
   const rawCwd = getOptionValue(inputArgs, '--cwd', null);
   const cwd = rawCwd ? normalizePath(rawCwd) : normalizePath(process.cwd());
-  const agents = ['codex', 'gemini', 'claude', 'cursor'];
+  const agents = SUPPORTED_AGENTS;
   const active = [];
 
   for (const agent of agents) {
@@ -2914,9 +2927,7 @@ function runReport(inputArgs) {
 
   const sourceSpecs = handoff.sources.map(source => {
     const agent = String(source.agent || '').toLowerCase();
-    if (!['codex', 'gemini', 'claude', 'cursor'].includes(agent)) {
-      throw new Error(`Unsupported agent: ${agent}`);
-    }
+    assertSupportedAgent(agent);
 
     const sessionId = typeof source.session_id === 'string' && source.session_id.trim()
       ? source.session_id.trim()

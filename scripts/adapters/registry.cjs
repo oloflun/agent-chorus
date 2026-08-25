@@ -20,7 +20,10 @@ const adapters = {
 function getAdapter(agent) {
   const adapter = adapters[agent];
   if (!adapter) {
-    throw new Error(`Unsupported agent: ${agent}`);
+    // Names the valid agents, like the CLI's own guard does. The wording still
+    // starts with "Unsupported agent" so the UNSUPPORTED_AGENT error code is
+    // derived from it unchanged.
+    throw new Error(`Unsupported agent: ${agent}. Valid: ${Object.keys(adapters).join(', ')}`);
   }
   return adapter;
 }

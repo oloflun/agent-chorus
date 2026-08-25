@@ -47,10 +47,16 @@ function collectSessionFiles(cwd) {
 }
 
 function getHermesSessionCwd(filePath) {
+  // Compared with forward slashes on both sides. normalizePath is path.resolve,
+  // which yields backslashes on Windows, so the markers below never matched
+  // there: every session log reported cwd null, cwdMatchesProject was skipped
+  // for want of a value, and `list --cwd <project>` returned session logs from
+  // every other project too. The paths are only inspected here, never returned
+  // in this form, so the slice is taken from the original string.
   const normalized = normalizePath(filePath);
-  if (normalized.includes('/.hermes/sessions/')) return null;
-  const marker = '/session-logs/';
-  const idx = normalized.indexOf(marker);
+  const forward = normalized.split(path.sep).join('/');
+  if (forward.includes('/.hermes/sessions/')) return null;
+  const idx = forward.indexOf('/session-logs/');
   if (idx >= 0) return normalized.slice(0, idx);
   return null;
 }

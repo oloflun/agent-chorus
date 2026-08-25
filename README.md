@@ -233,22 +233,28 @@ and drain the inbox other agents left you. Full protocol:
 
 ## Supported Agents
 
-Full multi-agent coverage. No other tool matches this breadth across 4 agents and 12 capabilities.
+Full multi-agent coverage across 5 agents and 12 capabilities.
 
-| Feature               | Codex | Gemini | Claude | Cursor |
-| :-------------------- | :---: | :----: | :----: | :----: |
-| **Read Content**      |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Session Summary***  |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Timeline***         |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Auto-Discovery**    |  Yes  |  Yes   |  Yes   |  Yes   |
-| **CWD Scoping**       |  Yes  |   No   |  Yes   |   No   |
-| **List Sessions**     |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Search**            |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Comparisons**       |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Session Diff**      |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Redaction Audit**   |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Messaging**         |  Yes  |  Yes   |  Yes   |  Yes   |
-| **Session Handoff**   |  Yes  |  Yes   |  Yes   |  Yes   |
+| Feature               | Codex | Gemini | Claude | Cursor | Hermes |
+| :-------------------- | :---: | :----: | :----: | :----: | :----: |
+| **Read Content**      |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Session Summary***  |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Timeline***         |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Auto-Discovery**    |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **CWD Scoping**       |  Yes  |   No   |  Yes   |   No   |  Yes   |
+| **List Sessions**     |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Search**            |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Comparisons**       |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Session Diff**      |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Redaction Audit**   |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Messaging**         |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+| **Session Handoff**   |  Yes  |  Yes   |  Yes   |  Yes   |  Yes   |
+
+Hermes is WSL-hosted and keeps markdown session logs rather than JSONL
+transcripts, so its adapter reads `~/.hermes/sessions` (override with
+`CHORUS_HERMES_SESSIONS_DIR`) plus project-local `session-logs/` mirrors. On a
+host where Hermes is not installed, session reading returns empty and messaging
+still works — relaying for an agent does not require running it.
 
 *\*Added in v0.11.0. As of v0.13.0, all four features have Rust parity and are conformance-tested against shared golden fixtures. `--tool-calls` on Gemini and Cursor is a no-op in both runtimes — those adapters don't yet parse a tool-call schema.*
 
